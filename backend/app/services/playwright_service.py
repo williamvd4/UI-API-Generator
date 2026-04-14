@@ -79,6 +79,16 @@ async def start_browser() -> None:
         logger.exception("Playwright startup failed")
 
 
+async def start_browser() -> None:
+    global _playwright, _browser
+    if _browser is not None:
+        return
+    _playwright = await async_playwright().start()
+    _browser = await _playwright.chromium.launch(headless=True)
+    await start_session(DEFAULT_SESSION_ID)
+    logger.info("Browser service started")
+
+
 async def stop_browser() -> None:
     global _browser, _playwright
     for session in list(_sessions.values()):
@@ -95,6 +105,8 @@ async def stop_browser() -> None:
 
 async def start_session(session_id: str) -> None:
     await ensure_browser()
+    if _browser is None:
+        raise RuntimeError("Browser not started")
     if session_id in _sessions:
         return
     context = await _browser.new_context(viewport={"width": 1280, "height": 720})
@@ -102,6 +114,7 @@ async def start_session(session_id: str) -> None:
     state = SessionState(context=context, page=page)
     _sessions[session_id] = state
     page.on("response", lambda res: asyncio.create_task(_handle_response(session_id, res)) if "application/json" in res.headers.get("content-type", "").lower() else None)
+    page.on("response", lambda response: asyncio.create_task(_handle_response(session_id, response)))
     logger.info("Session started: %s", session_id)
 
 
@@ -147,6 +160,7 @@ async def _handle_response(session_id: str, response: Response) -> None:
     if "application/json" not in content_type:
         return
 
+    parsed_body = None
     try:
         parsed_body = await response.json()
     except Exception:  # noqa: BLE001
@@ -166,6 +180,7 @@ async def _handle_response(session_id: str, response: Response) -> None:
         "headers": headers,
         "content_type": content_type,
         "size": len(await response.body()),
+        "size": len(str(parsed_body)),
         "json": parsed_body,
         "score": score["score"],
         "signals": score["signals"],

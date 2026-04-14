@@ -77,6 +77,7 @@ export default function ConfigPanel() {
           }}
           className="rounded bg-gray-700 px-2 py-1 text-xs"
         >
+        <button onClick={() => exportText("config.yaml", toYaml(JSON.parse(configText || "{}")))} className="rounded bg-gray-700 px-2 py-1 text-xs">
           Export YAML
         </button>
       </div>

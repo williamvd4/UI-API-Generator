@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { screenshotUrl } from "@/lib/api";
 import { useAppStore } from "@/lib/store";
@@ -22,6 +23,9 @@ export default function BrowserView() {
       }
     };
 
+
+  useEffect(() => {
+    const refresh = () => setSrc(screenshotUrl(sessionId));
     refresh();
     const timer = setInterval(refresh, 2500);
     return () => clearInterval(timer);
@@ -35,6 +39,8 @@ export default function BrowserView() {
         <img src={src} alt="Playwright session screenshot" className="h-full w-full object-contain" />
       </div>
       {error && <p className="mt-2 text-xs text-yellow-400">{error}</p>}
+        <Image src={src} alt="Playwright session screenshot" fill unoptimized className="object-contain" />
+      </div>
     </div>
   );
 }

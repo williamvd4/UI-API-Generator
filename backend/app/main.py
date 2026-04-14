@@ -17,6 +17,20 @@ from app.services import playwright_service
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+_active_connections: list[WebSocket] = []
+
+
+async def broadcast(event: dict):
+    dead: list[WebSocket] = []
+    for ws in _active_connections:
+        try:
+            await ws.send_text(json.dumps(event))
+        except Exception:  # noqa: BLE001
+            dead.append(ws)
+    for ws in dead:
+        if ws in _active_connections:
+            _active_connections.remove(ws)
+
 
 def configure_event_loop_for_windows() -> None:
     """Prefer Proactor loop on Windows for subprocess support (Playwright)."""
