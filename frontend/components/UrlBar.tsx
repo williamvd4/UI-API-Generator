@@ -1,32 +1,22 @@
 "use client";
 
 import { useState } from "react";
+import { fetchRequests, navigate } from "@/lib/api";
 import { useAppStore } from "@/lib/store";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-
-/**
- * UrlBar – URL input and "Go" button that calls the backend /navigate endpoint.
- */
 export default function UrlBar() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { url, setUrl } = useAppStore();
+  const { url, setUrl, sessionId, setRequests } = useAppStore();
 
   async function handleGo() {
     if (!url.trim()) return;
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_URL}/navigate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url }),
-      });
-      if (!res.ok) {
-        const body = await res.text();
-        throw new Error(`${res.status}: ${body}`);
-      }
+      await navigate(url, sessionId);
+      const requests = await fetchRequests(sessionId);
+      setRequests(requests);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
