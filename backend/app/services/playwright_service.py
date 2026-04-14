@@ -34,6 +34,7 @@ _playwright: Optional[Playwright] = None
 _browser: Optional[Browser] = None
 _sessions: dict[str, SessionState] = {}
 _broadcast: Optional[BroadcastFn] = None
+_startup_error: Optional[str] = None
 
 
 def set_broadcast_handler(handler: BroadcastFn) -> None:
@@ -44,6 +45,39 @@ def set_broadcast_handler(handler: BroadcastFn) -> None:
 async def _emit(event: dict[str, Any]) -> None:
     if _broadcast:
         await _broadcast(event)
+
+
+def get_startup_error() -> Optional[str]:
+    return _startup_error
+
+
+async def ensure_browser() -> None:
+    """Start Playwright lazily; raises RuntimeError with actionable guidance if unavailable."""
+    if _browser is None:
+        await start_browser()
+    if _browser is None:
+        message = _startup_error or "Playwright could not be started."
+        raise RuntimeError(message)
+
+
+async def start_browser() -> None:
+    global _playwright, _browser, _startup_error
+    if _browser is not None:
+        return
+
+    try:
+        _playwright = await async_playwright().start()
+        _browser = await _playwright.chromium.launch(headless=True)
+        _startup_error = None
+        await start_session(DEFAULT_SESSION_ID)
+        logger.info("Browser service started")
+    except Exception as exc:  # noqa: BLE001
+        _startup_error = (
+            "Failed to initialize Playwright browser. Ensure Python 3.13 or lower is used on Windows, "
+            "install Playwright browsers with 'playwright install', then restart. "
+            f"Original error: {exc}"
+        )
+        logger.exception("Playwright startup failed")
 
 
 async def start_browser() -> None:
@@ -80,6 +114,7 @@ async def stop_browser() -> None:
 
 
 async def start_session(session_id: str) -> None:
+    await ensure_browser()
     if _browser is None:
         raise RuntimeError("Browser not started")
     if session_id in _sessions:
@@ -88,6 +123,7 @@ async def start_session(session_id: str) -> None:
     page = await context.new_page()
     state = SessionState(context=context, page=page)
     _sessions[session_id] = state
+    page.on("response", lambda res: asyncio.create_task(_handle_response(session_id, res)) if "application/json" in res.headers.get("content-type", "").lower() else None)
     page.on("response", lambda response: asyncio.create_task(_handle_response(session_id, response)))
     logger.info("Session started: %s", session_id)
 
@@ -153,6 +189,7 @@ async def _handle_response(session_id: str, response: Response) -> None:
         "status": response.status,
         "headers": headers,
         "content_type": content_type,
+        "size": len(await response.body()),
         "size": len(str(parsed_body)),
         "json": parsed_body,
         "score": score["score"],
