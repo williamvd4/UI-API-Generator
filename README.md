@@ -1,102 +1,82 @@
 # UI-API-Generator – Scraping Assistant
 
-A full-stack monorepo for a **Playwright-based web scraping assistant** with:
+Monorepo for a deterministic scraping assistant:
 
-- 🌐 **Browser View** – placeholder for a live browser preview
-- 🔬 **Network Inspector** – captures HTTP responses from Playwright
-- ⚙️ **Config Generator** – displays generated scraping config (coming soon)
+- **Backend (FastAPI + Playwright):** loads pages, captures JSON API responses, scores candidate endpoints, generates scraping configs.
+- **Frontend (Next.js):** 3-column UI with browser preview, live network inspector, request details, and config output.
 
----
+## Requirements
 
-## Tech Stack
+- **Python:** 3.11–3.13 recommended (Playwright + Windows currently has issues on Python 3.14 subprocess APIs).
+- **Node.js:** 20+
+- **npm:** 10+
 
-| Layer    | Technology                       |
-|----------|----------------------------------|
-| Backend  | Python · FastAPI · Playwright    |
-| Frontend | Next.js · TypeScript · Tailwind  |
-| State    | Zustand                          |
-
----
-
-## Project Structure
-
-```
-/backend
-  /app
-    main.py            ← FastAPI entry-point, WebSocket endpoint
-    api/routes.py      ← POST /navigate
-    services/playwright_service.py
-    models/schemas.py
-  requirements.txt
-
-/frontend
-  /app                 ← Next.js App Router pages
-  /components          ← Layout, NetworkTable, ConfigPanel, UrlBar
-  /lib                 ← Zustand store, WebSocket client
-  package.json
-
-README.md
-```
-
----
-
-## Setup & Running
-
-### Backend
+## Run Backend
 
 ```bash
 cd backend
-
-# Create and activate a virtual environment (optional but recommended)
 python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
+# Linux/macOS
+source .venv/bin/activate
+# Windows
+# .venv\Scripts\activate
 
-# Install dependencies
 pip install -r requirements.txt
-
-# Install Playwright browser binaries
 playwright install chromium
-
-# Start the server (reloads on file changes)
 uvicorn app.main:app --reload
 ```
 
-The API will be available at **http://localhost:8000**.
+Backend is available at `http://localhost:8000`.
 
-### Frontend
+## Run Frontend
 
 ```bash
 cd frontend
-
-# Install dependencies
 npm install
-
-# Copy and edit environment variables
-cp .env.local.example .env.local
-
-# Start the dev server
 npm run dev
 ```
 
-The frontend will be available at **http://localhost:3000**.
-
----
+Frontend is available at `http://localhost:3000`.
 
 ## API Endpoints
 
-| Method | Path        | Description                          |
-|--------|-------------|--------------------------------------|
-| GET    | `/`         | Health check                         |
-| POST   | `/navigate` | `{ url }` – tell Playwright to navigate |
-| WS     | `/ws`       | WebSocket echo (events coming soon)  |
+- `GET /` – service banner
+- `GET /health` – backend health + Playwright readiness status
+- `POST /navigate` – `{ "url": "...", "session_id": "default" }`
+- `GET /requests?session_id=default` – captured/scored request summaries
+- `GET /request/{id}?session_id=default` – full request details + parsed JSON body
+- `POST /generate-config` – `{ "request_id": "...", "session_id": "default" }`
+- `GET /screenshot?session_id=default` – screenshot stream source
+- `WS /ws` – real-time request capture events
 
----
+## Troubleshooting
 
-## Environment Variables
+### Backend fails on startup with `NotImplementedError` (Windows + Python 3.14)
 
-### Frontend (`frontend/.env.local`)
+If you see Playwright startup failure from asyncio subprocess APIs, use Python **3.13 or lower** for now, recreate the venv, and reinstall dependencies.
 
-| Variable                   | Default                        |
-|----------------------------|--------------------------------|
-| `NEXT_PUBLIC_API_URL`      | `http://localhost:8000`        |
-| `NEXT_PUBLIC_API_WS_URL`   | `ws://localhost:8000/ws`       |
+### Frontend build error: missing `lightningcss.win32-x64-msvc.node`
+
+This usually means optional native dependencies were not installed.
+
+```bash
+cd frontend
+rm -rf node_modules package-lock.json
+npm cache clean --force
+npm install
+```
+
+On Windows PowerShell, remove folders with:
+
+```powershell
+Remove-Item -Recurse -Force node_modules, package-lock.json
+npm cache clean --force
+npm install
+```
+
+If your npm config disables optional packages, enable them:
+
+```bash
+npm config set optional true
+npm install
+```

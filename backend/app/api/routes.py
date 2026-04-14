@@ -17,8 +17,21 @@ from app.services.analysis_service import generate_config
 router = APIRouter()
 
 
+@router.get("/health")
+async def health():
+    return {
+        "status": "ok",
+        "playwright_ready": playwright_service.get_startup_error() is None,
+        "playwright_error": playwright_service.get_startup_error(),
+    }
+
+
 @router.post("/navigate", response_model=NavigateResponse)
 async def navigate(payload: NavigateRequest):
+    try:
+        final_url = await playwright_service.navigate(payload.session_id, payload.url)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
     final_url = await playwright_service.navigate(payload.session_id, payload.url)
     return NavigateResponse(status="ok", url=final_url, session_id=payload.session_id)
 
@@ -53,5 +66,9 @@ async def generate_config_endpoint(payload: GenerateConfigRequest):
 
 @router.get("/screenshot")
 async def screenshot(session_id: str = Query(default="default")):
+    try:
+        png = await playwright_service.get_screenshot(session_id)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
     png = await playwright_service.get_screenshot(session_id)
     return Response(content=png, media_type="image/png")

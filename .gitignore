@@ -212,3 +212,7 @@ node_modules/
 .vercel/
 out/
 frontend/.env.local
+
+# Keep frontend client library sources tracked
+!frontend/lib/
+!frontend/lib/**
