@@ -165,7 +165,7 @@ async def _handle_response(session_id: str, response: Response) -> None:
         "status": response.status,
         "headers": headers,
         "content_type": content_type,
-        "size": len(str(parsed_body)),
+        "size": len(await response.body()),
         "json": parsed_body,
         "score": score["score"],
         "signals": score["signals"],
