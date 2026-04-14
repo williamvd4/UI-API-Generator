@@ -33,9 +33,10 @@ _active_connections: list[WebSocket] = []
 
 async def broadcast(event: dict):
     dead: list[WebSocket] = []
-    for ws in _active_connections:
+    payload = json.dumps(event)
+    for ws in list(_active_connections):
         try:
-            await ws.send_text(json.dumps(event))
+            await ws.send_text(payload)
         except Exception:  # noqa: BLE001
             dead.append(ws)
     for ws in dead:
