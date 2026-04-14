@@ -101,7 +101,7 @@ async def start_session(session_id: str) -> None:
     page = await context.new_page()
     state = SessionState(context=context, page=page)
     _sessions[session_id] = state
-    page.on("response", lambda response: asyncio.create_task(_handle_response(session_id, response)))
+    page.on("response", lambda res: asyncio.create_task(_handle_response(session_id, res)) if "application/json" in res.headers.get("content-type", "").lower() else None)
     logger.info("Session started: %s", session_id)
 
 
