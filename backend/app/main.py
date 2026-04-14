@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import logging
+import sys
+import asyncio
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
@@ -14,6 +16,14 @@ from app.services import playwright_service
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Ensure Proactor event loop on Windows so subprocesses work (Playwright needs this)
+if sys.platform == "win32":
+    try:
+        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+    except Exception:
+        # Best-effort; if this fails, Playwright startup will raise a descriptive error
+        pass
 
 _active_connections: list[WebSocket] = []
 

@@ -10,6 +10,7 @@ from typing import Any, Awaitable, Callable, Optional
 from urllib.parse import urlparse
 
 from playwright.async_api import Browser, BrowserContext, Page, Playwright, Response, async_playwright
+import sys
 
 from app.services.analysis_service import score_response
 
@@ -49,6 +50,15 @@ async def start_browser() -> None:
     global _playwright, _browser
     if _browser is not None:
         return
+    # On Windows, the default selector event loop may not support subprocesses.
+    # Ensure a ProactorEventLoopPolicy is used so Playwright can spawn its browser subprocess.
+    if sys.platform == "win32":
+        try:
+            asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+        except Exception:
+            # If setting the policy fails for any reason, continue and let Playwright raise a clear error.
+            logger.debug("Could not set WindowsProactorEventLoopPolicy; proceeding anyway")
+
     _playwright = await async_playwright().start()
     _browser = await _playwright.chromium.launch(headless=True)
     await start_session(DEFAULT_SESSION_ID)
