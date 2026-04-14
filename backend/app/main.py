@@ -6,11 +6,12 @@ import asyncio
 import json
 import logging
 import sys
-<<<<<<< HEAD
-import asyncio
-=======
->>>>>>> 901f605f7f5043c7b7f1c5699efc4300e43f8bce
 from contextlib import asynccontextmanager
+
+# Must be set at module-import time, before uvicorn creates the event loop.
+# The reload worker subprocess imports this module first, then creates its loop.
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
@@ -20,39 +21,6 @@ from app.services import playwright_service
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-# Ensure Proactor event loop on Windows so subprocesses work (Playwright needs this)
-if sys.platform == "win32":
-    try:
-        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
-    except Exception:
-        # Best-effort; if this fails, Playwright startup will raise a descriptive error
-        pass
-
-_active_connections: list[WebSocket] = []
-
-
-async def broadcast(event: dict):
-    dead: list[WebSocket] = []
-    for ws in _active_connections:
-        try:
-            await ws.send_text(json.dumps(event))
-        except Exception:  # noqa: BLE001
-            dead.append(ws)
-    for ws in dead:
-        if ws in _active_connections:
-            _active_connections.remove(ws)
-
-
-def configure_event_loop_for_windows() -> None:
-    """Prefer Proactor loop on Windows for subprocess support (Playwright)."""
-    if sys.platform.startswith("win") and hasattr(asyncio, "WindowsProactorEventLoopPolicy"):
-        policy = asyncio.get_event_loop_policy()
-        if not isinstance(policy, asyncio.WindowsProactorEventLoopPolicy):
-            asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
-
-
-configure_event_loop_for_windows()
 
 _active_connections: list[WebSocket] = []
 

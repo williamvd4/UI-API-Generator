@@ -17,6 +17,7 @@ type AppState = {
   setConfig: (config: GeneratedConfig | null) => void;
   setConfigText: (text: string) => void;
   addWsMessage: (msg: unknown) => void;
+  resetApp: () => void;
 };
 
 export const useAppStore = create<AppState>((set) => ({
@@ -41,5 +42,15 @@ export const useAppStore = create<AppState>((set) => ({
       configText: config ? JSON.stringify(config, null, 2) : "",
     }),
   setConfigText: (text) => set({ configText: text }),
-  addWsMessage: (msg) => set((state) => ({ wsMessages: [...state.wsMessages, msg] })),
+  addWsMessage: (msg) => set((state) => ({ wsMessages: [...state.wsMessages.slice(-199), msg] })),
+  resetApp: () =>
+    set({
+      url: "",
+      networkLog: [],
+      selectedRequestId: null,
+      selectedRequest: null,
+      config: null,
+      configText: "",
+      wsMessages: [],
+    }),
 }));

@@ -98,8 +98,8 @@ def score_response(json_data: Any) -> dict[str, Any]:
     """Score response deterministically and emit matched signals."""
     score = 0.0
     signals: list[str] = []
-    path = detect_data_path(json_data)
-    candidate = extract_by_path(json_data, path)
+    path = None if isinstance(json_data, list) and _is_object_array(json_data) else detect_data_path(json_data)
+    candidate = json_data if path is None else extract_by_path(json_data, path)
 
     if _is_object_array(candidate) and len(candidate) > 3:
         score += 0.4
@@ -155,7 +155,7 @@ def detect_pagination(urls: list[str]) -> dict[str, str] | None:
 def generate_config(request: dict[str, Any], json_data: Any, all_urls: list[str]) -> dict[str, Any]:
     score_info = score_response(json_data)
     data_path = score_info["data_path"]
-    data_items = extract_by_path(json_data, data_path)
+    data_items = json_data if data_path is None else extract_by_path(json_data, data_path)
     sample = data_items[0] if _is_object_array(data_items) else {}
     parsed = urlparse(request["url"])
 

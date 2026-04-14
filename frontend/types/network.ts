@@ -7,6 +7,7 @@ export type NetworkRequest = {
   status: number;
   headers: Record<string, string>;
   content_type: string;
+  resource_type: string;
   size: number;
   score: number;
   signals: string[];
@@ -23,11 +24,12 @@ export type GeneratedConfig = {
   headers: Record<string, string>;
   params: Record<string, string>;
   pagination: { type: string; param: string } | null;
-  data_path: string;
+  data_path: string | null;
   fields: Record<string, string | null>;
   score: {
     score: number;
     signals: string[];
-    data_path: string;
+    data_path: string | null;
   };
+  selected_fields?: string[];
 };

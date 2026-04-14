@@ -6,6 +6,8 @@ from fastapi.responses import Response
 from app.models.schemas import (
     GenerateConfigRequest,
     GenerateConfigResponse,
+    InteractRequest,
+    InteractResponse,
     NavigateRequest,
     NavigateResponse,
     RequestDetailResponse,
@@ -32,7 +34,6 @@ async def navigate(payload: NavigateRequest):
         final_url = await playwright_service.navigate(payload.session_id, payload.url)
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
-    final_url = await playwright_service.navigate(payload.session_id, payload.url)
     return NavigateResponse(status="ok", url=final_url, session_id=payload.session_id)
 
 
@@ -70,5 +71,20 @@ async def screenshot(session_id: str = Query(default="default")):
         png = await playwright_service.get_screenshot(session_id)
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
-    png = await playwright_service.get_screenshot(session_id)
     return Response(content=png, media_type="image/png")
+
+
+@router.post("/interact", response_model=InteractResponse)
+async def interact(payload: InteractRequest):
+    try:
+        current_url = await playwright_service.interact(
+            payload.session_id,
+            payload.action,
+            payload.x,
+            payload.y,
+            payload.text,
+            payload.delta_y,
+        )
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    return InteractResponse(status="ok", current_url=current_url)

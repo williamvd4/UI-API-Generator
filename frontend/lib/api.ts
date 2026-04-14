@@ -42,3 +42,20 @@ export async function generateConfig(requestId: string, sessionId = "default"): 
 export function screenshotUrl(sessionId = "default") {
   return `${API_URL}/screenshot?session_id=${encodeURIComponent(sessionId)}&ts=${Date.now()}`;
 }
+
+export async function interact(
+  action: "click" | "type" | "scroll",
+  x: number,
+  y: number,
+  sessionId = "default",
+  text = "",
+  deltaY = 0,
+): Promise<{ status: string; current_url: string }> {
+  const res = await fetch(`${API_URL}/interact`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ session_id: sessionId, action, x, y, text, delta_y: deltaY }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}

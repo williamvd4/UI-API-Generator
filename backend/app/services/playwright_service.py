@@ -80,25 +80,6 @@ async def start_browser() -> None:
         logger.exception("Playwright startup failed")
 
 
-async def start_browser() -> None:
-    global _playwright, _browser
-    if _browser is not None:
-        return
-    # On Windows, the default selector event loop may not support subprocesses.
-    # Ensure a ProactorEventLoopPolicy is used so Playwright can spawn its browser subprocess.
-    if sys.platform == "win32":
-        try:
-            asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
-        except Exception:
-            # If setting the policy fails for any reason, continue and let Playwright raise a clear error.
-            logger.debug("Could not set WindowsProactorEventLoopPolicy; proceeding anyway")
-
-    _playwright = await async_playwright().start()
-    _browser = await _playwright.chromium.launch(headless=True)
-    await start_session(DEFAULT_SESSION_ID)
-    logger.info("Browser service started")
-
-
 async def stop_browser() -> None:
     global _browser, _playwright
     for session in list(_sessions.values()):
@@ -123,7 +104,6 @@ async def start_session(session_id: str) -> None:
     page = await context.new_page()
     state = SessionState(context=context, page=page)
     _sessions[session_id] = state
-    page.on("response", lambda res: asyncio.create_task(_handle_response(session_id, res)) if "application/json" in res.headers.get("content-type", "").lower() else None)
     page.on("response", lambda response: asyncio.create_task(_handle_response(session_id, response)))
     logger.info("Session started: %s", session_id)
 
@@ -160,26 +140,57 @@ def get_request_by_id(session_id: str, request_id: str) -> Optional[dict[str, An
     return None
 
 
+# Viewport dimensions kept in sync with context creation below
+VIEWPORT_WIDTH = 1280
+VIEWPORT_HEIGHT = 720
+
+
+async def interact(session_id: str, action: str, x: float, y: float, text: str = "", delta_y: int = 0) -> str:
+    """Perform a click, type, or scroll action in the browser and return the current URL."""
+    if session_id not in _sessions:
+        await start_session(session_id)
+    state = _sessions[session_id]
+    page = state.page
+
+    if action == "click":
+        abs_x = x * VIEWPORT_WIDTH
+        abs_y = y * VIEWPORT_HEIGHT
+        await page.mouse.click(abs_x, abs_y)
+        # Wait briefly for any navigation/network
+        try:
+            await page.wait_for_load_state("domcontentloaded", timeout=3000)
+        except Exception:  # noqa: BLE001
+            pass
+    elif action == "type":
+        await page.keyboard.type(text)
+    elif action == "scroll":
+        abs_x = x * VIEWPORT_WIDTH
+        abs_y = y * VIEWPORT_HEIGHT
+        await page.mouse.wheel(0, delta_y)
+
+    await _emit({"type": "navigation", "session_id": session_id, "url": page.url})
+    return page.url
+
+
 async def _handle_response(session_id: str, response: Response) -> None:
     state = _sessions.get(session_id)
     if not state:
         return
 
-    headers = response.headers
-    content_type = headers.get("content-type", "").lower()
-    if "application/json" not in content_type:
-        return
+    request = response.request
+    headers = request.headers
+    content_type = response.headers.get("content-type", "").lower()
 
     parsed_body = None
-    try:
-        parsed_body = await response.json()
-    except Exception:  # noqa: BLE001
-        return
+    score_result: dict[str, Any] = {"score": 0.0, "signals": [], "data_path": "data"}
+    if "application/json" in content_type:
+        try:
+            parsed_body = await response.json()
+            score_result = score_response(parsed_body)
+        except Exception:  # noqa: BLE001
+            pass
 
-    request = response.request
     state.sequence += 1
-    score = score_response(parsed_body)
-
     item = {
         "id": f"{session_id}-{state.sequence}",
         "session_id": session_id,
@@ -189,12 +200,12 @@ async def _handle_response(session_id: str, response: Response) -> None:
         "status": response.status,
         "headers": headers,
         "content_type": content_type,
-        "size": len(await response.body()),
-        "size": len(str(parsed_body)),
+        "resource_type": request.resource_type,
+        "size": len(str(parsed_body)) if parsed_body is not None else int(headers.get("content-length", 0) or 0),
         "json": parsed_body,
-        "score": score["score"],
-        "signals": score["signals"],
-        "data_path": score["data_path"],
+        "score": score_result["score"],
+        "signals": score_result["signals"],
+        "data_path": score_result["data_path"],
     }
     state.requests.appendleft(item)
 

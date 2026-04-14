@@ -14,6 +14,7 @@ import { NetworkRequest } from "@/types/network";
 export default function Home() {
   const addWsMessage = useAppStore((s) => s.addWsMessage);
   const upsertRequest = useAppStore((s) => s.upsertRequest);
+  const resetApp = useAppStore((s) => s.resetApp);
 
   useEffect(() => {
     return initWs((msg) => {
@@ -34,7 +35,16 @@ export default function Home() {
     <div className="flex h-screen flex-col bg-gray-950 text-white">
       <header className="flex items-center gap-4 border-b border-gray-800 px-4 py-3">
         <span className="whitespace-nowrap text-sm font-bold text-blue-400">🕷 Scraping Assistant</span>
-        <UrlBar />
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            type="button"
+            onClick={resetApp}
+            className="rounded bg-red-600 px-3 py-1 text-xs font-medium text-white hover:bg-red-500"
+          >
+            Reset
+          </button>
+          <UrlBar />
+        </div>
       </header>
       <main className="flex-1 overflow-hidden">
         <Layout

@@ -28,15 +28,15 @@ export default function RequestDetails() {
       <div className="mb-3 grid grid-cols-2 gap-2">
         <div>
           <div className="mb-1 text-gray-400">Headers</div>
-          <pre className="max-h-32 overflow-auto rounded bg-gray-800 p-2">{JSON.stringify(request.headers, null, 2)}</pre>
+          <pre className="max-h-60 overflow-auto rounded bg-gray-800 p-2">{JSON.stringify(request.headers, null, 2)}</pre>
         </div>
         <div>
           <div className="mb-1 text-gray-400">Params</div>
-          <pre className="max-h-32 overflow-auto rounded bg-gray-800 p-2">{JSON.stringify(params, null, 2)}</pre>
+          <pre className="max-h-60 overflow-auto rounded bg-gray-800 p-2">{JSON.stringify(params, null, 2)}</pre>
         </div>
       </div>
       <div className="text-gray-400">JSON</div>
-      <pre className="max-h-72 overflow-auto rounded bg-gray-800 p-2 text-[11px]">{JSON.stringify(request.json, null, 2)}</pre>
+      <pre className="max-h-80 overflow-auto rounded bg-gray-800 p-2 text-[11px]">{JSON.stringify(request.json, null, 2)}</pre>
     </div>
   );
 }

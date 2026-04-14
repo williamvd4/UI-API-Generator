@@ -12,9 +12,9 @@ interface LayoutProps {
 export default function Layout({ left, middle, right }: LayoutProps) {
   return (
     <div className="grid grid-cols-3 gap-4 h-full p-4">
-      <section className="flex flex-col gap-2">{left}</section>
-      <section className="flex flex-col gap-2">{middle}</section>
-      <section className="flex flex-col gap-2">{right}</section>
+      <section className="flex flex-col gap-2 min-h-0">{left}</section>
+      <section className="flex flex-col gap-2 min-h-0">{middle}</section>
+      <section className="flex flex-col gap-2 min-h-0">{right}</section>
     </div>
   );
 }
