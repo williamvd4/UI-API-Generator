@@ -5,40 +5,46 @@ import Layout from "@/components/Layout";
 import NetworkTable from "@/components/NetworkTable";
 import ConfigPanel from "@/components/ConfigPanel";
 import UrlBar from "@/components/UrlBar";
+import RequestDetails from "@/components/RequestDetails";
+import BrowserView from "@/components/BrowserView";
 import { initWs } from "@/lib/ws";
 import { useAppStore } from "@/lib/store";
+import { NetworkRequest } from "@/types/network";
 
 export default function Home() {
   const addWsMessage = useAppStore((s) => s.addWsMessage);
+  const upsertRequest = useAppStore((s) => s.upsertRequest);
 
   useEffect(() => {
-    initWs((msg) => addWsMessage(msg));
-  }, [addWsMessage]);
+    return initWs((msg) => {
+      addWsMessage(msg);
+      if (
+        msg &&
+        typeof msg === "object" &&
+        "type" in msg &&
+        msg.type === "request_captured" &&
+        "request" in msg
+      ) {
+        upsertRequest(msg.request as NetworkRequest);
+      }
+    });
+  }, [addWsMessage, upsertRequest]);
 
   return (
-    <div className="flex flex-col h-screen bg-gray-950 text-white">
-      {/* Top bar */}
+    <div className="flex h-screen flex-col bg-gray-950 text-white">
       <header className="flex items-center gap-4 border-b border-gray-800 px-4 py-3">
-        <span className="text-sm font-bold text-blue-400 whitespace-nowrap">
-          🕷 Scraping Assistant
-        </span>
+        <span className="whitespace-nowrap text-sm font-bold text-blue-400">🕷 Scraping Assistant</span>
         <UrlBar />
       </header>
-
-      {/* Main 3-column layout */}
       <main className="flex-1 overflow-hidden">
         <Layout
-          left={
-            <div className="flex-1 rounded border border-gray-700 bg-gray-900 p-2">
-              <h2 className="mb-2 text-sm font-semibold text-gray-300">
-                Browser View
-              </h2>
-              <div className="flex h-64 items-center justify-center rounded bg-gray-800 text-xs text-gray-500">
-                Browser preview will appear here
-              </div>
+          left={<BrowserView />}
+          middle={
+            <div className="flex h-full flex-col gap-3">
+              <NetworkTable />
+              <RequestDetails />
             </div>
           }
-          middle={<NetworkTable />}
           right={<ConfigPanel />}
         />
       </main>
