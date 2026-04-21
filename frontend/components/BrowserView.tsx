@@ -20,14 +20,19 @@ export default function BrowserView() {
   const containerRef = useRef<HTMLDivElement>(null);
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const idleIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const blobUrlRef = useRef<string>("");
 
   // ── Screenshot refresh ──────────────────────────────────────────────────
   const refreshScreenshot = useCallback(async () => {
-    const nextSrc = screenshotUrl(sessionId);
     try {
-      const res = await fetch(nextSrc, { method: "GET" });
+      const res = await fetch(screenshotUrl(sessionId));
       if (!res.ok) throw new Error(`Screenshot unavailable (${res.status})`);
-      setSrc(nextSrc);
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      // Revoke the previous blob URL before replacing it
+      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = objectUrl;
+      setSrc(objectUrl);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -41,6 +46,7 @@ export default function BrowserView() {
     return () => {
       if (idleIntervalRef.current) clearInterval(idleIntervalRef.current);
       if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
     };
   }, [refreshScreenshot]);
 

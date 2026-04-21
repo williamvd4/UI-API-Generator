@@ -1,6 +1,7 @@
 type WsHandler = (msg: unknown) => void;
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_KEY = process.env.NEXT_PUBLIC_API_KEY ?? "";
 
 let socket: WebSocket | null = null;
 let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -11,7 +12,8 @@ export function initWs(onMessage: WsHandler): () => void {
 
   function connect() {
     if (destroyed) return;
-    const wsUrl = API_URL.replace("http", "ws") + "/ws";
+    const base = API_URL.replace("http", "ws") + "/ws";
+    const wsUrl = API_KEY ? `${base}?api_key=${encodeURIComponent(API_KEY)}` : base;
     socket = new WebSocket(wsUrl);
 
     socket.onmessage = (event) => {

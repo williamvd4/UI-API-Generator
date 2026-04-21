@@ -263,14 +263,18 @@ export default function ConfigPanel() {
               <div className="flex gap-1">
                 <button
                   type="button"
-                  onClick={() => fieldKeys.forEach((key) => updateField(key, true))}
+                  onClick={() =>
+                    setFieldSelection(Object.fromEntries(fieldKeys.map((key) => [key, true])))
+                  }
                   className="rounded bg-gray-700 px-2 py-1 text-[10px]"
                 >
                   All
                 </button>
                 <button
                   type="button"
-                  onClick={() => fieldKeys.forEach((key) => updateField(key, false))}
+                  onClick={() =>
+                    setFieldSelection(Object.fromEntries(fieldKeys.map((key) => [key, false])))
+                  }
                   className="rounded bg-gray-700 px-2 py-1 text-[10px]"
                 >
                   None
