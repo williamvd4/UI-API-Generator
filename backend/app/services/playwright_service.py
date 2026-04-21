@@ -10,16 +10,37 @@ from typing import Any, Awaitable, Callable, Optional
 from urllib.parse import urlparse
 
 from playwright.async_api import Browser, BrowserContext, Page, Playwright, Response, async_playwright
-import sys
 
 from app.services.analysis_service import score_response
 
 logger = logging.getLogger(__name__)
 
 MAX_REQUESTS = 200
+MAX_JSON_BYTES = 512 * 1024  # 512 KB – skip JSON parsing for larger responses
 DEFAULT_SESSION_ID = "default"
 
 BroadcastFn = Callable[[dict[str, Any]], Awaitable[None]]
+
+# Headers whose values are redacted before the request item is stored, to avoid
+# accidentally leaking credentials into the network log or WebSocket events.
+_SENSITIVE_HEADERS: frozenset[str] = frozenset(
+    {
+        "authorization",
+        "cookie",
+        "set-cookie",
+        "proxy-authorization",
+        "x-api-key",
+        "x-auth-token",
+        "x-csrf-token",
+    }
+)
+
+
+def _redact_headers(headers: dict[str, str]) -> dict[str, str]:
+    return {
+        k: ("[redacted]" if k.lower() in _SENSITIVE_HEADERS else v)
+        for k, v in headers.items()
+    }
 
 
 @dataclass
@@ -140,6 +161,26 @@ def get_request_by_id(session_id: str, request_id: str) -> Optional[dict[str, An
     return None
 
 
+async def reset_session(session_id: str) -> None:
+    """Clear captured requests and navigate to about:blank for a session.
+
+    Creates a fresh session if one does not yet exist.
+    """
+    state = _sessions.get(session_id)
+    if state:
+        state.requests.clear()
+        state.sequence = 0
+        try:
+            await state.page.goto("about:blank", wait_until="commit")
+        except Exception as exc:
+            logger.warning(
+                "Could not navigate to about:blank during session reset for %s: %s",
+                session_id,
+                exc,
+            )
+    logger.info("Session reset: %s", session_id)
+
+
 # Viewport dimensions kept in sync with context creation below
 VIEWPORT_WIDTH = 1280
 VIEWPORT_HEIGHT = 720
@@ -159,14 +200,16 @@ async def interact(session_id: str, action: str, x: float, y: float, text: str =
         # Wait briefly for any navigation/network
         try:
             await page.wait_for_load_state("domcontentloaded", timeout=3000)
-        except Exception:  # noqa: BLE001
-            pass
+        except Exception as exc:
+            logger.debug("Load state wait timed out after click in session %s: %s", session_id, exc)
     elif action == "type":
         await page.keyboard.type(text)
     elif action == "scroll":
         abs_x = x * VIEWPORT_WIDTH
         abs_y = y * VIEWPORT_HEIGHT
         await page.mouse.wheel(0, delta_y)
+    else:
+        raise ValueError(f"Unknown interact action: {action!r}")
 
     await _emit({"type": "navigation", "session_id": session_id, "url": page.url})
     return page.url
@@ -184,11 +227,19 @@ async def _handle_response(session_id: str, response: Response) -> None:
     parsed_body = None
     score_result: dict[str, Any] = {"score": 0.0, "signals": [], "data_path": "data"}
     if "application/json" in content_type:
-        try:
-            parsed_body = await response.json()
-            score_result = score_response(parsed_body)
-        except Exception:  # noqa: BLE001
-            pass
+        raw_size = int(headers.get("content-length", 0) or 0)
+        if raw_size == 0 or raw_size <= MAX_JSON_BYTES:
+            try:
+                parsed_body = await response.json()
+                score_result = score_response(parsed_body)
+            except Exception as exc:
+                logger.debug("Failed to parse JSON response from %s: %s", response.url, exc)
+        else:
+            logger.debug(
+                "Skipping JSON parse for large response (%d bytes) from %s",
+                raw_size,
+                response.url,
+            )
 
     state.sequence += 1
     item = {
@@ -198,7 +249,7 @@ async def _handle_response(session_id: str, response: Response) -> None:
         "path": urlparse(response.url).path,
         "method": request.method,
         "status": response.status,
-        "headers": headers,
+        "headers": _redact_headers(dict(headers)),
         "content_type": content_type,
         "resource_type": request.resource_type,
         "size": len(str(parsed_body)) if parsed_body is not None else int(headers.get("content-length", 0) or 0),

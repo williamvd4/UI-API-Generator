@@ -25,6 +25,7 @@ function formatSize(bytes: number): string {
 export default function NetworkTable() {
   const [filter, setFilter] = useState<"all" | "xhr" | "json">("all");
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [selectError, setSelectError] = useState<string | null>(null);
   const { networkLog, selectRequest, sessionId, selectedRequestId } = useAppStore();
 
   const rows =
@@ -36,9 +37,12 @@ export default function NetworkTable() {
 
   async function onSelect(requestId: string) {
     setLoadingId(requestId);
+    setSelectError(null);
     try {
       const detail = await fetchRequestDetail(requestId, sessionId);
       selectRequest(detail);
+    } catch (err) {
+      setSelectError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoadingId(null);
     }
@@ -63,6 +67,12 @@ export default function NetworkTable() {
         ))}
         <span className="ml-auto text-xs text-gray-500 self-center">{rows.length} requests</span>
       </div>
+
+      {selectError && (
+        <p className="rounded border border-red-700 bg-red-950 px-3 py-1 text-xs text-red-300">
+          {selectError}
+        </p>
+      )}
 
       {/* Table */}
       <div className="flex-1 overflow-y-auto rounded border border-gray-700 min-h-0">

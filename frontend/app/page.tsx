@@ -8,6 +8,7 @@ import UrlBar from "@/components/UrlBar";
 import RequestDetails from "@/components/RequestDetails";
 import BrowserView from "@/components/BrowserView";
 import { initWs } from "@/lib/ws";
+import { resetSession } from "@/lib/api";
 import { useAppStore } from "@/lib/store";
 import { NetworkRequest } from "@/types/network";
 
@@ -15,6 +16,7 @@ export default function Home() {
   const addWsMessage = useAppStore((s) => s.addWsMessage);
   const upsertRequest = useAppStore((s) => s.upsertRequest);
   const resetApp = useAppStore((s) => s.resetApp);
+  const sessionId = useAppStore((s) => s.sessionId);
 
   useEffect(() => {
     return initWs((msg) => {
@@ -31,6 +33,15 @@ export default function Home() {
     });
   }, [addWsMessage, upsertRequest]);
 
+  async function handleReset() {
+    try {
+      await resetSession(sessionId);
+    } catch {
+      // Best-effort: always reset the UI even if the backend call fails.
+    }
+    resetApp();
+  }
+
   return (
     <div className="flex h-screen flex-col bg-gray-950 text-white">
       <header className="flex items-center gap-4 border-b border-gray-800 px-4 py-3">
@@ -38,7 +49,7 @@ export default function Home() {
         <div className="ml-auto flex items-center gap-2">
           <button
             type="button"
-            onClick={resetApp}
+            onClick={handleReset}
             className="rounded bg-red-600 px-3 py-1 text-xs font-medium text-white hover:bg-red-500"
           >
             Reset

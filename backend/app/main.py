@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 import sys
 from contextlib import asynccontextmanager
 
@@ -22,6 +23,18 @@ from app.services import playwright_service
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# ---------------------------------------------------------------------------
+# CORS origins
+# ---------------------------------------------------------------------------
+# Set ALLOWED_ORIGINS to a comma-separated list of trusted origins.
+# Example: ALLOWED_ORIGINS=http://localhost:3000,https://myapp.example.com
+# Defaults to localhost:3000 (the default Next.js dev server) when not set.
+_raw_origins = os.environ.get("ALLOWED_ORIGINS", "")
+ALLOWED_ORIGINS: list[str] = (
+    [o.strip() for o in _raw_origins.split(",") if o.strip()]
+    or ["http://localhost:3000"]
+)
+
 _active_connections: list[WebSocket] = []
 
 
@@ -31,7 +44,8 @@ async def broadcast(event: dict):
     for ws in list(_active_connections):
         try:
             await ws.send_text(payload)
-        except Exception:  # noqa: BLE001
+        except Exception as exc:
+            logger.debug("WebSocket send failed, dropping connection: %s", exc)
             dead.append(ws)
     for ws in dead:
         if ws in _active_connections:
@@ -51,7 +65,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Scraping Assistant API", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -66,6 +80,18 @@ async def root():
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
+    # When API_KEY is configured, require it via the ?api_key= query parameter.
+    configured_key = os.environ.get("API_KEY", "")
+    if configured_key:
+        supplied = (
+            websocket.query_params.get("api_key")
+            or websocket.headers.get("x-api-key")
+        )
+        if supplied != configured_key:
+            await websocket.close(code=1008)  # Policy Violation
+            logger.warning("WebSocket connection rejected: invalid API key")
+            return
+
     await websocket.accept()
     _active_connections.append(websocket)
     await websocket.send_text(json.dumps({"type": "connected"}))
