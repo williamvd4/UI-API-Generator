@@ -1,0 +1,14 @@
+{
+  "name": "ui-api-generator-electron-example",
+  "version": "0.1.0",
+  "description": "Electron example embedding a full BrowserView browser instance",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "start:dev": "cross-env START_URL=http://localhost:3000 electron ."
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "electron": "^39.8.1"
+  }
+}

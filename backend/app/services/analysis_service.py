@@ -15,6 +15,28 @@ FIELD_RULES: dict[str, tuple[str, ...]] = {
     "id": ("id", "sku"),
 }
 
+# Headers whose values are redacted from generated configs to avoid accidental
+# credential leakage in exported artifacts.
+SENSITIVE_HEADERS: frozenset[str] = frozenset(
+    {
+        "authorization",
+        "cookie",
+        "set-cookie",
+        "proxy-authorization",
+        "x-api-key",
+        "x-auth-token",
+        "x-csrf-token",
+    }
+)
+
+
+def _redact_headers(headers: dict[str, str]) -> dict[str, str]:
+    """Return a copy of *headers* with sensitive values replaced by ``[redacted]``."""
+    return {
+        k: ("[redacted]" if k.lower() in SENSITIVE_HEADERS else v)
+        for k, v in headers.items()
+    }
+
 
 @dataclass
 class ArrayCandidate:
@@ -162,9 +184,7 @@ def generate_config(request: dict[str, Any], json_data: Any, all_urls: list[str]
     return {
         "endpoint": f"{parsed.scheme}://{parsed.netloc}{parsed.path}",
         "method": request["method"],
-        # Prefer the enriched `request_headers` (includes pseudo-headers),
-        # fall back to the original `headers` dict when not present.
-        "headers": request.get("request_headers", request.get("headers", {})),
+        "headers": _redact_headers(request.get("headers", {})),
         "params": dict(parse_qsl(parsed.query, keep_blank_values=True)),
         "pagination": detect_pagination(all_urls),
         "data_path": data_path,
