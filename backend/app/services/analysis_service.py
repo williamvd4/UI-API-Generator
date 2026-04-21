@@ -162,7 +162,9 @@ def generate_config(request: dict[str, Any], json_data: Any, all_urls: list[str]
     return {
         "endpoint": f"{parsed.scheme}://{parsed.netloc}{parsed.path}",
         "method": request["method"],
-        "headers": request.get("headers", {}),
+        # Prefer the enriched `request_headers` (includes pseudo-headers),
+        # fall back to the original `headers` dict when not present.
+        "headers": request.get("request_headers", request.get("headers", {})),
         "params": dict(parse_qsl(parsed.query, keep_blank_values=True)),
         "pagination": detect_pagination(all_urls),
         "data_path": data_path,

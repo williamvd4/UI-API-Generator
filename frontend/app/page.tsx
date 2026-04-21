@@ -6,7 +6,6 @@ import NetworkTable from "@/components/NetworkTable";
 import ConfigPanel from "@/components/ConfigPanel";
 import UrlBar from "@/components/UrlBar";
 import RequestDetails from "@/components/RequestDetails";
-import BrowserView from "@/components/BrowserView";
 import { initWs } from "@/lib/ws";
 import { useAppStore } from "@/lib/store";
 import { NetworkRequest } from "@/types/network";
@@ -26,7 +25,15 @@ export default function Home() {
         msg.type === "request_captured" &&
         "request" in msg
       ) {
-        upsertRequest(msg.request as NetworkRequest);
+        // Only upsert requests for the active session id to avoid showing
+        // previously-captured requests from other sessions/processes.
+        const currentSession = useAppStore.getState().sessionId;
+        try {
+          const r = msg.request as NetworkRequest & { session_id?: string };
+          if (r.session_id === currentSession) upsertRequest(r as NetworkRequest);
+        } catch {
+          /* ignore malformed messages */
+        }
       }
     });
   }, [addWsMessage, upsertRequest]);
@@ -48,7 +55,7 @@ export default function Home() {
       </header>
       <main className="flex-1 overflow-hidden">
         <Layout
-          left={<BrowserView />}
+          left={null}
           middle={
             <div className="flex h-full flex-col gap-3">
               <NetworkTable />

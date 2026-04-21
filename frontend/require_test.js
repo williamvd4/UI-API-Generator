@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 try {
   console.log('node test start');
   const c = require('lightningcss');

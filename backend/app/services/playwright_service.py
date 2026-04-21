@@ -11,6 +11,7 @@ from urllib.parse import urlparse
 
 from playwright.async_api import Browser, BrowserContext, Page, Playwright, Response, async_playwright
 import sys
+import json
 
 from app.services.analysis_service import score_response
 
@@ -67,7 +68,8 @@ async def start_browser() -> None:
 
     try:
         _playwright = await async_playwright().start()
-        _browser = await _playwright.chromium.launch(headless=True)
+        # Launch the browser in a visible, full-screen window.
+        _browser = await _playwright.chromium.launch(headless=False, args=["--start-fullscreen"])
         _startup_error = None
         await start_session(DEFAULT_SESSION_ID)
         logger.info("Browser service started")
@@ -100,7 +102,8 @@ async def start_session(session_id: str) -> None:
         raise RuntimeError("Browser not started")
     if session_id in _sessions:
         return
-    context = await _browser.new_context(viewport={"width": 1280, "height": 720})
+    # Let the page use the full browser window size (no fixed viewport).
+    context = await _browser.new_context()
     page = await context.new_page()
     state = SessionState(context=context, page=page)
     _sessions[session_id] = state
@@ -122,11 +125,6 @@ async def navigate(session_id: str, url: str) -> str:
     return state.page.url
 
 
-async def get_screenshot(session_id: str) -> bytes:
-    if session_id not in _sessions:
-        await start_session(session_id)
-    return await _sessions[session_id].page.screenshot(type="png")
-
 
 def get_requests(session_id: str) -> list[dict[str, Any]]:
     state = _sessions.get(session_id)
@@ -140,36 +138,15 @@ def get_request_by_id(session_id: str, request_id: str) -> Optional[dict[str, An
     return None
 
 
-# Viewport dimensions kept in sync with context creation below
-VIEWPORT_WIDTH = 1280
-VIEWPORT_HEIGHT = 720
+def get_request_by_global_id(request_id: str) -> Optional[dict[str, Any]]:
+    """Search all sessions for a request with the given id and return it if found."""
+    for session_id, state in _sessions.items():
+        # iterate over a snapshot of requests
+        for item in list(state.requests):
+            if item.get("id") == request_id:
+                return item
+    return None
 
-
-async def interact(session_id: str, action: str, x: float, y: float, text: str = "", delta_y: int = 0) -> str:
-    """Perform a click, type, or scroll action in the browser and return the current URL."""
-    if session_id not in _sessions:
-        await start_session(session_id)
-    state = _sessions[session_id]
-    page = state.page
-
-    if action == "click":
-        abs_x = x * VIEWPORT_WIDTH
-        abs_y = y * VIEWPORT_HEIGHT
-        await page.mouse.click(abs_x, abs_y)
-        # Wait briefly for any navigation/network
-        try:
-            await page.wait_for_load_state("domcontentloaded", timeout=3000)
-        except Exception:  # noqa: BLE001
-            pass
-    elif action == "type":
-        await page.keyboard.type(text)
-    elif action == "scroll":
-        abs_x = x * VIEWPORT_WIDTH
-        abs_y = y * VIEWPORT_HEIGHT
-        await page.mouse.wheel(0, delta_y)
-
-    await _emit({"type": "navigation", "session_id": session_id, "url": page.url})
-    return page.url
 
 
 async def _handle_response(session_id: str, response: Response) -> None:
@@ -191,6 +168,60 @@ async def _handle_response(session_id: str, response: Response) -> None:
             pass
 
     state.sequence += 1
+    # Attempt to capture request post data to help identify GraphQL payloads
+    request_post_data = None
+    try:
+        request_post_data = response.request.post_data
+    except Exception:
+        request_post_data = None
+
+    # Heuristic: mark GraphQL requests when URL contains 'graphql', when request body
+    # contains a top-level 'query', or when the response JSON looks like GraphQL (has data/errors).
+    is_graphql = False
+    try:
+        if "graphql" in response.url.lower():
+            is_graphql = True
+        elif response.request.method == "POST" and request_post_data:
+            if "query" in request_post_data:
+                is_graphql = True
+            else:
+                # try parsing JSON body
+                try:
+                    pd = json.loads(request_post_data)
+                    if isinstance(pd, dict) and "query" in pd:
+                        is_graphql = True
+                except Exception:
+                    pass
+        elif isinstance(parsed_body, dict) and ("data" in parsed_body or "errors" in parsed_body):
+            is_graphql = True
+    except Exception:
+        is_graphql = False
+
+    resource_type = request.resource_type
+    if is_graphql:
+        resource_type = "graphql"
+
+    # Extract GraphQL operation name/snippet for display
+    graphql_operation = None
+    if is_graphql and request_post_data:
+        try:
+            pd = json.loads(request_post_data)
+            if isinstance(pd, dict):
+                graphql_operation = pd.get("operationName")
+                if not graphql_operation and "query" in pd and isinstance(pd["query"], str):
+                    q = pd["query"].strip().splitlines()
+                    if q:
+                        # Try to extract operation name using a simple regex
+                        import re
+
+                        m = re.search(r"operation\s+(?:query|mutation|subscription)\s+(\w+)", q[0])
+                        if m:
+                            graphql_operation = m.group(1)
+                        else:
+                            graphql_operation = q[0][:80]
+        except Exception:
+            graphql_operation = None
+
     item = {
         "id": f"{session_id}-{state.sequence}",
         "session_id": session_id,
@@ -198,15 +229,27 @@ async def _handle_response(session_id: str, response: Response) -> None:
         "path": urlparse(response.url).path,
         "method": request.method,
         "status": response.status,
+        # Preserve captured headers and augment with HTTP/2 pseudo-headers
         "headers": headers,
+        "request_headers": {
+            **{k: v for k, v in headers.items()},
+            ":method": request.method,
+            ":scheme": urlparse(response.url).scheme,
+            ":authority": urlparse(response.url).netloc,
+            ":path": urlparse(response.url).path + ("?" + urlparse(response.url).query if urlparse(response.url).query else ""),
+        },
         "content_type": content_type,
-        "resource_type": request.resource_type,
+        "resource_type": resource_type,
         "size": len(str(parsed_body)) if parsed_body is not None else int(headers.get("content-length", 0) or 0),
         "json": parsed_body,
         "score": score_result["score"],
         "signals": score_result["signals"],
         "data_path": score_result["data_path"],
     }
+    if request_post_data:
+        item["request_post_data"] = request_post_data
+    if graphql_operation:
+        item["graphql_operation"] = graphql_operation
     state.requests.appendleft(item)
 
     await _emit({"type": "request_captured", "request": {k: v for k, v in item.items() if k != "json"}})

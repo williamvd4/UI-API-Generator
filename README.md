@@ -4,6 +4,7 @@ Monorepo for a deterministic scraping assistant:
 
 - **Backend (FastAPI + Playwright):** loads pages, captures JSON API responses, scores candidate endpoints, generates scraping configs.
 - **Frontend (Next.js):** 3-column UI with browser preview, live network inspector, request details, and config output.
+ - **Frontend (Next.js):** 2-column UI with live network inspector, request details, and config output.
 
 ## Requirements
 
@@ -46,7 +47,6 @@ Frontend is available at `http://localhost:3000`.
 - `GET /requests?session_id=default` – captured/scored request summaries
 - `GET /request/{id}?session_id=default` – full request details + parsed JSON body
 - `POST /generate-config` – `{ "request_id": "...", "session_id": "default" }`
-- `GET /screenshot?session_id=default` – screenshot stream source
 - `WS /ws` – real-time request capture events
 
 ## Troubleshooting

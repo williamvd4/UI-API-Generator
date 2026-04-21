@@ -253,10 +253,7 @@ export default function ConfigPanel() {
               <div className="flex flex-col gap-1 min-w-0">
                 <span className="font-medium">Pick fields to scrape</span>
                 {examplePayload && (
-                  <span className="text-[11px] text-gray-300 block min-w-0 overflow-hidden whitespace-nowrap text-ellipsis">
-                    Example: <span className="font-mono text-xs text-green-300">{examplePayload.path}</span>
-                    <span className="text-gray-400"> =&nbsp;</span>
-                    <span className="text-[11px] text-gray-200">{JSON.stringify(examplePayload.value)}</span>
+                  <span className="text-[11px] text-gray-300 block min-w-0 whitespace-normal break-words">
                   </span>
                 )}
               </div>
@@ -283,21 +280,18 @@ export default function ConfigPanel() {
               {fieldKeys.map((field) => {
                 const exampleValue = fieldExamples[field];
                 return (
-                  <label key={field} className="flex flex-col gap-1 rounded bg-gray-900 px-2 py-1">
-                    <div className="flex items-center gap-2">
+                  <label key={field} className="flex flex-col gap-1 rounded bg-gray-900 px-2 py-1 break-words">
+                    <span className="flex items-center gap-2"> </span>
                       <input
                         type="checkbox"
                         checked={fieldSelection[field] ?? true}
                         onChange={(e) => updateField(field, e.target.checked)}
                         className="text-blue-400"
                       />
-                      <span className="truncate text-sm">{normalizeFieldPath(field)}</span>
-                    </div>
-                    {exampleValue !== undefined && (
-                      <span className="text-[10px] text-gray-400 block min-w-0 overflow-hidden whitespace-nowrap text-ellipsis">
-                        {JSON.stringify(exampleValue)}
-                      </span>
-                    )}
+                        <span className="text-sm break-words whitespace-normal">{normalizeFieldPath(field)}</span>                        <span className="text-[10px] text-gray-400 block min-w-0 break-words whitespace-normal">
+                          {JSON.stringify(exampleValue)}
+                        </span>
+                    ){"}"}
                   </label>
                 );
               })}

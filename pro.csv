@@ -1,0 +1,71 @@
+brand,cashOptions[].productSlug,cashOptions[].thcWeight,categoryName,product.name,product.posPrice,product.qty
+,5-boro-hood-candyz-7g-dime-bag,0.7,Flower,5 Boro - Hood Candyz .7g Dime Bag,9.0,10
+,5-boro-permanent-marker-7g-dime-bag,0.7,Flower,5 Boro - Permanent Marker .7g Dime Bag,9.0,19
+,akron-bloom-cherry-kiss-3-5g-flower,3.5,Flower,Akron Bloom - Cherry Kiss 3.5g Flower,34.0,7
+,akron-bloom-flower-divorce-cake-7g,7.0,Flower,Akron Bloom - Flower - Divorce Cake 7G,50.0,15
+,akron-bloom-flower-gmo-3-5g_2,3.5,Flower,Akron Bloom - Flower - GMO 3.5g,34.0,9
+,akron-bloom-flower-strawberry-blonde-og-7g,7.0,Flower,Akron Bloom - Flower - Strawberry Blonde OG 7g,50.0,25
+,back-home-farms-acapulco-gold-7g,7.0,Flower,Back Home Farms - Acapulco Gold - 7g,65.0,6
+,back-home-farms-jack-herer-7g,7.0,Flower,Back Home Farms - Jack Herer - 7g,65.0,12
+,back-home-farms-maui-waui-7g,7.0,Flower,Back Home Farms - Maui Waui - 7g,65.0,9
+,back-home-farms-northern-lights-7g,7.0,Flower,Back Home Farms - Northern Lights - 7g,65.0,5
+,juniper-jill-flower-confidential-3-5g_2,3.5,Flower,Juniper Jill - Flower - Confidential - 3.5g,36.0,10
+,juniper-jill-flower-dante-inferno-3-5g,3.5,Flower,Juniper Jill - Flower - Dante Inferno - 3.5g,36.0,9
+,nanticoke-coconut-cream-14g-jar,14.0,Flower,Nanticoke - Coconut Cream 14g Jar,110.0,7
+,nanticoke-flower-coconut-cream-3-5g,3.5,Flower,Nanticoke - Flower - Coconut Cream - 3.5g,39.0,11
+,nanticoke-lemon-cherry-gelato-3-5-gram-jar,3.5,Flower,Nanticoke - Lemon Cherry Gelato 3.5 Gram Jar,39.0,29
+,nanticoke-lilac-diesel-3-5-gram-jar,3.5,Flower,Nanticoke - Lilac Diesel - 3.5 Gram Jar,39.0,8
+,nanticoke-permafrost-14g-jar,14.0,Flower,Nanticoke - Permafrost 14g Jar,110.0,8
+,pioneer-plant-tech-2-gram-double-grape-fresh-cured,2.0,Flower,Pioneer Plant Tech - 2 gram Double Grape Fresh Cured,20.0,17
+,pioneer-plant-tech-2g-flower-blueberry-muffin,2.0,Flower,Pioneer Plant Tech - 2g Flower - Blueberry Muffin,20.0,6
+,pioneer-plant-tech-flower-purple-p-dropper-2g,2.0,Flower,Pioneer Plant Tech - Flower -  Purple P Dropper - 2g,20.0,22
+,pioneer-plant-tech-flower-mandarin-dog-1g-dime,1.0,Flower,Pioneer Plant Tech - Flower - Mandarin Dog 1g Dime,9.5,57
+,pot-head-flower-mythic-cheetah-14g,14.0,Flower,Pot & Head - Flower - Mythic Cheetah - 14g,85.0,6
+,pot-head-flower-sour-diesel-14g,14.0,Flower,Pot & Head - Flower - Sour Diesel 14g,85.0,2
+,pot-head-tuxedo-edition-flower-14g-animal-face,14.0,Flower,Pot & Head Tuxedo Edition Flower 14g - Animal Face,88.0,3
+,pot-head-tuxedo-edition-flower-14g-motor-cake,14.0,Flower,Pot & Head Tuxedo Edition Flower 14g - Motor Cake,88.0,6
+,pot-head-tuxedo-edition-flower-3-5g-ice-cream-mintz,3.5,Flower,Pot & Head Tuxedo Edition Flower 3.5g - Ice Cream Mintz,38.0,11
+,pot-head-tuxedo-edition-flower-3-5g-peanut-butter-cookie,3.5,Flower,Pot & Head Tuxedo Edition Flower 3.5g - Peanut Butter Cookie,38.0,12
+,pot-head-tuxedo-edition-flower-3-5g-pink-passionfruit,3.5,Flower,Pot & Head Tuxedo Edition Flower 3.5g - Pink Passionfruit,38.0,7
+,pot-head-tuxedo-edition-flower-3-5g-super-boof,3.5,Flower,Pot & Head Tuxedo Edition Flower 3.5g - Super Boof,38.0,2
+,pot-head-tuxedo-edition-flower-7g-grease-monkey,7.0,Flower,Pot & Head Tuxedo Edition Flower 7g - Grease Monkey,56.0,8
+,ready-2-roll-flower-hybrid-7g,7.0,Flower,Ready 2 Roll - Flower (Hybrid) - 7g,40.0,12
+,ready-2-roll-flower-indica-7g,7.0,Flower,Ready 2 Roll - Flower (Indica) - 7g,40.0,4
+,ready-2-roll-flower-sativa-7g,7.0,Flower,Ready 2 Roll - Flower (Sativa) - 7g,40.0,14
+,royal-leaf-cap-junky-oz,28.0,Flower,Royal Leaf - Cap Junky OZ,180.0,4
+,royal-leaf-cherry-gushers-oz,28.0,Flower,Royal Leaf - Cherry Gushers OZ,180.0,3
+,royal-leaf-flower-cap-junky-3-5g,3.5,Flower,Royal Leaf - Flower - Cap Junky 3.5g,43.0,8
+,royal-leaf-qtr-pinnacle,7.0,Flower,Royal Leaf - QTR Pinnacle,50.0,16
+,royal-leaf-qtr-royal-leaf-haze,7.0,Flower,Royal Leaf - QTR Royal Leaf Haze,50.0,2
+,umamii-flower-3-5g-carbon-fiber,3.5,Flower,Umamii - Flower - 3.5g Carbon Fiber,36.0,1
+,umamii-flower-sundae-driver-3-5g,3.5,Flower,Umamii - Flower - Sundae Driver 3.5g,32.0,33
+,umamii-flower-3-5g-ice-cream-cake,3.5,Flower,Umamii - Flower- 3.5g Ice Cream Cake,36.0,4
+5 Boro,5-boro-5-boro-flower-amnesia-haze-7g,0.7,Flower,5 Boro - Flower - Amnesia Haze .7g,9.0,10
+5 Boro,5-boro-5-boro-flower-blue-hawaiian-7g,0.7,Flower,5 Boro - Flower - Blue Hawaiian .7g,9.0,13
+5 Boro,5-boro-5-boro-flower-cereal-milk-7g,0.7,Flower,5 Boro - Flower - Cereal Milk .7g,9.0,8
+5 Boro,5-boro-5-boro-flower-forbidden-fruit-7g,0.7,Flower,5 Boro - Flower - Forbidden Fruit .7g,9.0,13
+5 Boro,5-boro-5-boro-flower-fuel-pump-7g,0.7,Flower,5 Boro - Flower - Fuel Pump .7g,9.0,9
+Cultured,cultured-cultured-flower-boisen-gushers-3-5g,3.5,Flower,Cultured-Flower-Boisen Gushers 3.5g,45.0,4
+Dealer Cannabis Co,dealer-cannabis-co-dealer-cannabis-flower-anti-freeze-3-5g,3.5,Flower,Dealer Cannabis-Flower-Anti Freeze 3.5g,36.0,1
+Harney Brothers Cannabis,harney-brothers-cannabis-hbc-flower-hulkberry-3-5g,3.5,Flower,HBC-Flower-Hulkberry 3.5g,30.0,18
+Juniper Jill,juniper-jill-juniper-jill-flower-doughnut-voodoo-1g-dime-bag,1.0,Flower,Juniper Jill - Flower - Doughnut VooDoo 1g Dime Bag,12.0,43
+Juniper Jill,juniper-jill-juniper-jill-flower-iced-out-wook-1g-dime-bag,1.0,Flower,Juniper Jill - Flower - Iced Out Wook 1g Dime Bag,12.0,69
+Nanticoke,nanticoke-nanticoke-flower-black-panther-3-5g,3.5,Flower,Nanticoke - Flower - Black Panther 3.5g,39.0,24
+Nanticoke,nanticoke-nanticoke-flower-blue-dream-3-5g,3.5,Flower,Nanticoke - Flower - Blue Dream - 3.5g,40.0,15
+Nanticoke,nanticoke-nanticoke-flower-permafrost-3-5g,3.5,Flower,Nanticoke - Flower - Permafrost 3.5g,39.0,14
+Pioneer Plant Tech,pioneer-plant-tech-pioneer-plant-tech-dime-bag-1g-blueberry-muffin,1.0,Flower,Pioneer Plant Tech - Dime Bag - 1g Blueberry Muffin,9.5,30
+Pioneer Plant Tech,pioneer-plant-tech-pioneer-plant-tech-dime-bag-1g-chem-dog,1.0,Flower,Pioneer Plant Tech - Dime Bag - 1g Chem Dog,9.5,62
+Pioneer Plant Tech,pioneer-plant-tech-pioneer-plant-tech-flower-3-bears-1g-dime-bag,1.0,Flower,Pioneer Plant Tech - Flower - 3 Bears - 1g Dime Bag,9.5,28
+Pioneer Plant Tech,pioneer-plant-tech-pioneer-plant-tech-flower-frozen-lemonz-1g-dime,1.0,Flower,Pioneer Plant Tech - Flower - Frozen Lemonz 1g Dime,9.5,52
+Pioneer Plant Tech,pioneer-plant-tech-pioneer-plant-tech-flower-ripleys-og-1g-dime,1.0,Flower,Pioneer Plant Tech - Flower - Ripley's OG 1g Dime,9.5,34
+Pioneer Plant Tech,pioneer-plant-tech-pioneer-plant-tech-guava-2g,2.0,Flower,Pioneer Plant Tech - Guava - 2g,20.0,13
+Pioneer Plant Tech,pioneer-plant-tech-pioneer-plant-tech-sour-papaya-2g,2.0,Flower,Pioneer Plant Tech - Sour Papaya - 2g,20.0,9
+Pioneer Plant Tech,pioneer-plant-tech-pioneer-plant-tech-swizzle-2g,2.0,Flower,Pioneer Plant Tech - Swizzle - 2g,20.0,25
+Pioneer Plant Tech,pioneer-plant-tech-pioneer-plant-tech-flower-papaya-diesel-1g,1.0,Flower,Pioneer Plant Tech-Flower-Papaya Diesel 1g,9.5,37
+Pioneer Plant Tech,pioneer-plant-tech-pioneer-plant-tech-flower-sour-stomper-1g,1.0,Flower,Pioneer Plant Tech-Flower-Sour Stomper 1g,9.5,50
+Pioneer Plant tech,pioneer-plant-tech-pioneer-plant-tech-dime-bag-1g-bruce-banner,1.0,Flower,Pioneer Plant Tech - Dime Bag - 1g Bruce Banner,9.5,1
+SpaceBuds,spacebuds-moonrocks-apple-pie-4g,4.0,Flower,Moonrocks - Apple Pie 4g,60.0,5
+Spacebuds,spacebuds-moonrocks-blueberry-muffin-4g,4.0,Flower,Moonrocks - Blueberry Muffin 4g,60.0,5
+Spacebuds,spacebuds-spacebuds-moonrocks-strawberry-slushie-space-baller-28g,28.0,Flower,Spacebuds Moonrocks - Strawberry Slushie Space Baller - 28g,350.0,2
+Spacebuds Moonrocks,spacebuds-moonrocks-moonrocks-grape-bubbly-4g,4.0,Flower,Moonrocks - Grape Bubbly 4g,60.0,2
+Spacebuds Moonrocks,spacebuds-moonrocks-moonrocks-vanilla-frosting-4g,4.0,Flower,Moonrocks - Vanilla Frosting 4g,60.0,6

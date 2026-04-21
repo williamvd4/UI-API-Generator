@@ -11,6 +11,7 @@ type AppState = {
   configText: string;
   wsMessages: unknown[];
   setUrl: (url: string) => void;
+  setSessionId: (id: string) => void;
   setRequests: (requests: NetworkRequest[]) => void;
   upsertRequest: (request: NetworkRequest) => void;
   selectRequest: (request: RequestDetail | null) => void;
@@ -30,6 +31,7 @@ export const useAppStore = create<AppState>((set) => ({
   configText: "",
   wsMessages: [],
   setUrl: (url) => set({ url }),
+  setSessionId: (id) => set({ sessionId: id }),
   setRequests: (requests) => set({ networkLog: requests }),
   upsertRequest: (request) =>
     set((state) => ({
@@ -46,6 +48,8 @@ export const useAppStore = create<AppState>((set) => ({
   resetApp: () =>
     set({
       url: "",
+      // generate a fresh session id so we don't re-use previous in-memory state
+      sessionId: `default-${Date.now()}`,
       networkLog: [],
       selectedRequestId: null,
       selectedRequest: null,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { NetworkRequest } from "@/types/network";
 import { fetchRequestDetail } from "@/lib/api";
 import { useAppStore } from "@/lib/store";
 
@@ -11,6 +12,7 @@ const TYPE_COLOURS: Record<string, string> = {
   xhr:        "bg-green-900 text-green-300",
   fetch:      "bg-green-900 text-green-300",
   image:      "bg-pink-900 text-pink-300",
+  graphql:    "bg-emerald-900 text-emerald-300",
   font:       "bg-orange-900 text-orange-300",
   websocket:  "bg-cyan-900 text-cyan-300",
 };
@@ -23,16 +25,59 @@ function formatSize(bytes: number): string {
 }
 
 export default function NetworkTable() {
-  const [filter, setFilter] = useState<"all" | "xhr" | "json">("all");
+  const [filterSet, setFilterSet] = useState<string[]>(["all"]);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const { networkLog, selectRequest, sessionId, selectedRequestId } = useAppStore();
 
-  const rows =
-    filter === "xhr"
-      ? networkLog.filter((e) => e.resource_type === "xhr" || e.resource_type === "fetch")
-      : filter === "json"
-      ? networkLog.filter((e) => e.content_type.includes("application/json"))
-      : networkLog;
+  const allFilters = [
+    "all",
+    "xhr",
+    "fetch",
+    "graphql",
+    "js",
+    "css",
+    "img",
+    "media",
+    "font",
+    "ws",
+    "doc",
+    "other",
+    "json",
+  ] as const;
+
+  function toggleFilter(f: string) {
+    if (f === "all") return setFilterSet(["all"]);
+    setFilterSet((prev) => {
+      const next = new Set(prev.filter((p) => p !== "all"));
+      if (next.has(f)) next.delete(f);
+      else next.add(f);
+      const arr = Array.from(next);
+      return arr.length === 0 ? ["all"] : arr;
+    });
+  }
+
+  function matchesFilter(req: NetworkRequest) {
+    if (filterSet.includes("all")) return true;
+    // JSON content filter
+    if (filterSet.includes("json") && req.content_type.includes("application/json")) return true;
+    // Map filters to Playwright resource_type or content
+    for (const f of filterSet) {
+      if (f === "xhr" && req.resource_type === "xhr") return true;
+      if (f === "graphql" && req.resource_type === "graphql") return true;
+      if (f === "fetch" && req.resource_type === "fetch") return true;
+      if (f === "js" && req.resource_type === "script") return true;
+      if (f === "css" && req.resource_type === "stylesheet") return true;
+      if (f === "img" && req.resource_type === "image") return true;
+      if (f === "media" && req.resource_type === "media") return true;
+      if (f === "font" && req.resource_type === "font") return true;
+      if (f === "ws" && req.resource_type === "websocket") return true;
+      if (f === "doc" && req.resource_type === "document") return true;
+      if (f === "other" && (req.resource_type === "other" || !req.resource_type)) return true;
+    }
+    return false;
+  }
+
+  const rows = networkLog.filter(matchesFilter);
 
   async function onSelect(requestId: string) {
     setLoadingId(requestId);
@@ -48,12 +93,12 @@ export default function NetworkTable() {
     <div className="flex flex-col gap-2 min-h-0 flex-1">
       {/* Filter tabs */}
       <div className="flex gap-1">
-        {(["all", "xhr", "json"] as const).map((f) => (
+        {allFilters.map((f) => (
           <button
             key={f}
-            onClick={() => setFilter(f)}
+            onClick={() => toggleFilter(f)}
             className={`rounded px-3 py-1 text-xs font-medium ${
-              filter === f
+              (filterSet.includes("all") && f === "all") || (!filterSet.includes("all") && filterSet.includes(f))
                 ? "bg-blue-600 text-white"
                 : "bg-gray-800 text-gray-400 hover:bg-gray-700"
             }`}
@@ -86,7 +131,7 @@ export default function NetworkTable() {
                 <tr
                   key={req.id}
                   onClick={() => onSelect(req.id)}
-                  className={`cursor-pointer border-t border-gray-800 hover:bg-gray-800 ${
+                  className={`cursor-pointer border-t border-gray-800 hover:bg-gray-800 align-top ${
                     req.id === selectedRequestId ? "bg-gray-800 ring-1 ring-inset ring-blue-600" : ""
                   } ${loadingId === req.id ? "opacity-50" : ""}`}
                 >
@@ -103,8 +148,11 @@ export default function NetworkTable() {
                       {req.resource_type}
                     </span>
                   </td>
-                  <td className="px-2 py-1 max-w-[200px] truncate text-gray-300" title={req.path}>
-                    {req.path}
+                  <td className="px-2 py-1 max-w-[200px] text-gray-300" title={req.path}>
+                    <div className="break-words">{req.path}</div>
+                    {req.graphql_operation && (
+                      <div className="text-[10px] text-gray-400">{req.graphql_operation}</div>
+                    )}
                   </td>
                   <td className="px-2 py-1 text-right text-gray-400">{formatSize(req.size)}</td>
                 </tr>

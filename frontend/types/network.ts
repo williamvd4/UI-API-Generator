@@ -12,6 +12,9 @@ export type NetworkRequest = {
   score: number;
   signals: string[];
   data_path: string;
+  // Optional fields added by backend for richer UI
+  request_post_data?: string;
+  graphql_operation?: string;
 };
 
 export type RequestDetail = NetworkRequest & {

@@ -1,0 +1,27 @@
+{
+  "endpoint": "https://api.nevada.getcarrot.io/api/v1/store/category/slug/flower/product",
+  "method": "GET",
+  "headers": {
+    "x-request-id": "csa_0kOTViOO9WvihXmr7od3K",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "referer": "https://blackriversupplyco.com/",
+    "sec-ch-ua": "\"Chromium\";v=\"145\", \"Not:A-Brand\";v=\"99\"",
+    "sec-ch-ua-mobile": "?0",
+    "carrot-space-id": "244",
+    "carrot-anonymous-id": "2fef6cf4-525f-40c4-b9f7-b4cc359be2f2",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+  },
+  "params": {
+    "locId": "1",
+    "platform": "web"
+  },
+  "selected_fields": [
+    "brand",
+    "cashOptions[].productSlug",
+    "cashOptions[].thcWeight",
+    "categoryName",
+    "product.name",
+    "product.posPrice",
+    "product.qty"
+  ]
+}
