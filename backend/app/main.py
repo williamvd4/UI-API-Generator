@@ -44,7 +44,7 @@ async def broadcast(event: dict):
     for ws in list(_active_connections):
         try:
             await ws.send_text(payload)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("WebSocket send failed, dropping connection: %s", exc)
             dead.append(ws)
     for ws in dead:

@@ -172,7 +172,7 @@ async def reset_session(session_id: str) -> None:
         state.sequence = 0
         try:
             await state.page.goto("about:blank", wait_until="commit")
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning(
                 "Could not navigate to about:blank during session reset for %s: %s",
                 session_id,
@@ -200,7 +200,7 @@ async def interact(session_id: str, action: str, x: float, y: float, text: str =
         # Wait briefly for any navigation/network
         try:
             await page.wait_for_load_state("domcontentloaded", timeout=3000)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("Load state wait timed out after click in session %s: %s", session_id, exc)
     elif action == "type":
         await page.keyboard.type(text)
@@ -232,7 +232,7 @@ async def _handle_response(session_id: str, response: Response) -> None:
             try:
                 parsed_body = await response.json()
                 score_result = score_response(parsed_body)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.debug("Failed to parse JSON response from %s: %s", response.url, exc)
         else:
             logger.debug(
